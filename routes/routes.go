@@ -8,11 +8,23 @@ import (
 
 func HandleRequest() {
 	r := gin.Default()
-	r.GET("/api/depoimentos", controllers.TodosDepoimentos)
-	r.POST("/api/depoimentos", controllers.CriaDepoimento)
+	depoimentos := r.Group("/api/depoimentos")
+	{
+		depoimentos.GET("/", controllers.TodosDepoimentos)
+		depoimentos.POST("/", controllers.CriaDepoimento)
+		depoimentos.GET("/:id", controllers.RetornaDepoimento)
+		depoimentos.PATCH("/:id", controllers.EditaDepoimento)
+		depoimentos.DELETE("/:id", controllers.DeletaDepoimento)
+	}
 	r.GET("/api/depoimentos-home", controllers.DepoimentosHome)
-	r.GET("/api/depoimentos/:id", controllers.RetornaDepoimento)
-	r.PATCH("/api/depoimentos/:id", controllers.EditaDepoimento)
-	r.DELETE("/api/depoimentos/:id", controllers.DeletaDepoimento)
+	destinos := r.Group("/api/destinos")
+	{
+		destinos.GET("/", controllers.TodosDestinos)
+		destinos.POST("/", controllers.CriaDestino)
+		destinos.GET("/:id", controllers.RetornaDestino)
+		destinos.PATCH("/:id", controllers.EditaDestino)
+		destinos.DELETE("/:id", controllers.DeletaDestino)
+	}
+
 	r.Run()
 }

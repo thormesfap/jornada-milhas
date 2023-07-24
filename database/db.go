@@ -36,5 +36,6 @@ func ConectaComBancoDeDados() {
 
 func Migrate(){
 	DB.AutoMigrate(&models.Depoimento{})
+	DB.AutoMigrate(&models.Destino{})
 }
 

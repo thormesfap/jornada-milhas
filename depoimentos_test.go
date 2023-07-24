@@ -8,20 +8,11 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/thormesfap/jornada-milhas/database"
 	"github.com/thormesfap/jornada-milhas/models"
 	"github.com/thormesfap/jornada-milhas/controllers"
 )
-
-var ID int
-
-func SetupDasRotasDeTeste() *gin.Engine {
-	gin.SetMode(gin.ReleaseMode)
-	rotas := gin.Default()
-	return rotas
-}
 
 func TestListandoTodosDepoimentos(t *testing.T) {
 	database.ConectaComBancoDeDados()

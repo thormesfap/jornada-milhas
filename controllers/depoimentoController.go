@@ -39,7 +39,7 @@ func CriaDepoimento(c *gin.Context) {
 			"error": err.Error()})
 		return
 	}
-	if err := models.Validate(&depoimento); err != nil {
+	if err := models.ValidateDepoimento(&depoimento); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error()})
 		return
@@ -69,7 +69,7 @@ func EditaDepoimento(c *gin.Context) {
 			"error": err.Error()})
 		return
 	}
-	if err := models.Validate(&dAtualizado); err != nil {
+	if err := models.ValidateDepoimento(&dAtualizado); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error()})
 		return

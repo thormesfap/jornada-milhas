@@ -13,7 +13,7 @@ type Depoimento struct {
 	Autor      string `json:"autor" validate:"nonzero"`
 }
 
-func Validate(depoimento *Depoimento)error{
+func ValidateDepoimento(depoimento *Depoimento)error{
 	if err := validator.Validate(depoimento); err != nil {
 		return err
 	}
