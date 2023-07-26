@@ -14,6 +14,7 @@ func HandleRequest() {
 		depoimentos.POST("/", controllers.CriaDepoimento)
 		depoimentos.GET("/:id", controllers.RetornaDepoimento)
 		depoimentos.PATCH("/:id", controllers.EditaDepoimento)
+		depoimentos.POST("/:id", controllers.AdicionaFotoAoDepoimento)
 		depoimentos.DELETE("/:id", controllers.DeletaDepoimento)
 	}
 	r.GET("/api/depoimentos-home", controllers.DepoimentosHome)

@@ -3,15 +3,20 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
+	"io"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
+	"net/textproto"
+	"os"
 	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/thormesfap/jornada-milhas/controllers"
 	"github.com/thormesfap/jornada-milhas/database"
 	"github.com/thormesfap/jornada-milhas/models"
-	"github.com/thormesfap/jornada-milhas/controllers"
 )
 
 func TestListandoTodosDepoimentos(t *testing.T) {
@@ -44,7 +49,7 @@ func TestAtualizaDepoimentoPorIDHandler(t *testing.T){
 	defer DeletaDepoimentoMock()
 	r := SetupDasRotasDeTeste()
 	r.PATCH("/depoimentos/:id", controllers.EditaDepoimento)
-	depoimento := models.Depoimento{Autor:"Autor de Teste para Edição", Foto:"89", Depoimento:"Depoimento alterado com sucesso através do teste"}
+	depoimento := models.Depoimento{Autor:"Autor de Teste para Edição", Depoimento:"Depoimento alterado com sucesso através do teste"}
 	body, _ := json.Marshal(depoimento)
 	path := "/depoimentos/" + strconv.Itoa(ID)
 	req, _ := http.NewRequest("PATCH", path, bytes.NewBuffer(body))
@@ -54,7 +59,6 @@ func TestAtualizaDepoimentoPorIDHandler(t *testing.T){
 	var DepoimentoMock models.Depoimento
 	json.Unmarshal(resposta.Body.Bytes(), &DepoimentoMock)
 	assert.Equal(t, "Autor de Teste para Edição", DepoimentoMock.Autor)
-	assert.Equal(t, "89", DepoimentoMock.Foto)
 	assert.Equal(t, "Depoimento alterado com sucesso através do teste", DepoimentoMock.Depoimento)
 }
 
@@ -62,7 +66,7 @@ func TestCriaDepoimentoHandler(t *testing.T){
 	database.ConectaComBancoDeDados()
 	r := SetupDasRotasDeTeste()
 	r.POST("/depoimentos", controllers.CriaDepoimento)
-	depoimento := models.Depoimento{Autor:"Autor de Teste para Criação", Foto:"189", Depoimento:"Depoimento criado com sucesso através do teste"}
+	depoimento := models.Depoimento{Autor:"Autor de Teste para Criação", Depoimento:"Depoimento criado com sucesso através do teste"}
 	body, _ := json.Marshal(depoimento)
 	path := "/depoimentos"
 	req, _ := http.NewRequest("POST", path, bytes.NewBuffer(body))
@@ -73,7 +77,6 @@ func TestCriaDepoimentoHandler(t *testing.T){
 	json.Unmarshal(resposta.Body.Bytes(), &DepoimentoMock)
 	assert.NotEqual(t, 0, DepoimentoMock.ID)
 	assert.Equal(t, "Autor de Teste para Criação", DepoimentoMock.Autor)
-	assert.Equal(t, "189", DepoimentoMock.Foto)
 	assert.Equal(t, "Depoimento criado com sucesso através do teste", DepoimentoMock.Depoimento)
 	if DepoimentoMock.ID != 0{
 		ID = int(DepoimentoMock.ID)
@@ -92,9 +95,36 @@ func TestDeletaDepoimentoPorIDHandler(t *testing.T){
 	assert.Equal(t,http.StatusOK, resposta.Code)
 }
 
+func TestAdicionaFotoAoDepoimento(t *testing.T){
+	database.ConectaComBancoDeDados()
+	CriaDepoimentoMock()
+	defer DeletaDepoimentoMock()
+	r := SetupDasRotasDeTeste()
+	r.POST("/depoimentos/:id", controllers.AdicionaFotoAoDepoimento)
+	body := new(bytes.Buffer)
+	multipartWriter := multipart.NewWriter(body)
+	//Create multipart header
+    fileHeader := make(textproto.MIMEHeader)
+    fileHeader.Set("Content-Disposition", fmt.Sprintf(`form-data; name="%s"; filename="%s"`, "imagem", "avatar.jpg"))
+    fileHeader.Set("Content-Type", "text/plain")
+    writer, err := multipartWriter.CreatePart(fileHeader)
+    assert.Nil(t, err)
+    //Copy file to file multipart writer
+    file, err := os.Open("avatar.jpg")
+    assert.Nil(t, err)
+    io.Copy(writer, file)
+    // close the writer before making the request
+    multipartWriter.Close()
+    req, _ := http.NewRequest(http.MethodPost, "/depoimentos/" + strconv.Itoa(ID), body)
+    resp := httptest.NewRecorder()
+    req.Header.Add("Content-Type", multipartWriter.FormDataContentType())
+    r.ServeHTTP(resp, req)
+	assert.Equal(t, http.StatusOK, resp.Code)
+}
+
 
 func CriaDepoimentoMock(){
-	depoimento := models.Depoimento{Autor:"Autor de Teste", Depoimento:"Depoimento de Teste para criação", Foto:"53"}
+	depoimento := models.Depoimento{Autor:"Autor de Teste", Depoimento:"Depoimento de Teste para criação"}
 	database.DB.Create(&depoimento)
 	ID = int(depoimento.ID)
 }

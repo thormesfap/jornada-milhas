@@ -2,8 +2,10 @@ package controllers
 
 import (
 	"net/http"
+	"path/filepath"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/thormesfap/jornada-milhas/database"
 	"github.com/thormesfap/jornada-milhas/models"
 )
@@ -52,6 +54,38 @@ func CriaDestino(c *gin.Context) {
 	database.DB.Create(&destino)
 	c.JSON(http.StatusOK, destino)
 }
+
+func AdicionaFotoAoDestino(c *gin.Context) {
+	id := c.Params.ByName("id")
+	var d models.Destino
+	database.DB.First(&d, id)
+	if d.ID == 0 {
+		c.JSON(http.StatusNotFound, gin.H{
+			"Not found": "Destino não encontrado"})
+		return
+	}
+	folder := "./public/imagens/destinos/"
+	file, err := c.FormFile("imagem")
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	}
+
+	extensao := filepath.Ext(file.Filename)
+	novoNome := uuid.New().String() + extensao
+	if err := c.SaveUploadedFile(file, folder + novoNome); err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			"message": "Não foi possível salvar o arquivo: " + err.Error(),
+		})
+		return
+	}
+	d.Foto = folder + novoNome
+	database.DB.Save(d)
+	c.JSON(http.StatusOK, gin.H{
+		"mensagem": "Foto salva com sucesso.",
+	})
+
+}
+
 func DeletaDestino(c *gin.Context) {
 	id := c.Params.ByName("id")
 	var p models.Destino

@@ -8,7 +8,7 @@ import (
 type Depoimento struct {
 	
 	gorm.Model
-	Foto       string `json:"foto" validate:"nonzero"`
+	Foto       string
 	Depoimento string `json:"depoimento" validate:"min=20"`
 	Autor      string `json:"autor" validate:"nonzero"`
 }
